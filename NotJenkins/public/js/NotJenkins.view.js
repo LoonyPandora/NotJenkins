@@ -6,13 +6,15 @@
             template: "/core/templates/collection-list.html",
             el: ".collection-list.view",
 
-            serialize: function () {
+            serialize: function (options) {
                 var view = this;
+                options = options || {}
 
                 view.render({
                     json: {
-                        sectionTitle: "Builds",
+                        sectionTitle: view.options.title,
                         sectionRoot: "NotJenkins/pull",
+                        sectionActive: options.pullRequestID,
                         models: [
                             {
                                 title: "Add tooltips with transefer error messages, fix jshint errors to please Jenkins",
@@ -24,9 +26,7 @@
             }
         }),
 
-        BlankView: Harbour.View.extend({
-            template: ""
-        }),
+        Blank: Harbour.View.extend({ template: "" }),
 
         SectionTitle: Harbour.View.extend({
             template: "/core/templates/header.html",
@@ -50,19 +50,21 @@
             serialize: function () {
                 var view = this;
 
-                var baseURL = Backbone.history.fragment;
-                if (baseURL.indexOf("/") !== -1) {
-                    baseURL = baseURL.substring(0, baseURL.lastIndexOf("/"));
+                var fragment = Backbone.history.fragment;
+                var baseURL, activeSection;
+                if (fragment.indexOf("/") !== -1) {
+                    baseURL = fragment.substring(0, fragment.lastIndexOf("/"));
+                    activeSection = fragment.substring(fragment.lastIndexOf("/") + 1);
                 }
 
                 view.render({
                     json: {
                         sectionRoot: baseURL,
+                        sectionActive: activeSection,
                         sections: [
                             {
                                 url: "home",
                                 icon: "home",
-                                active: "active",
                                 title: "Home"
                             },
                             {

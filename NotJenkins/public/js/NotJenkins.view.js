@@ -12,9 +12,12 @@
                 view.render({
                     json: {
                         sectionTitle: "Builds",
-                        sectionRoot: "NotJenkins/build",
+                        sectionRoot: "NotJenkins/pull",
                         models: [
-                            {title: "Footbar", id: "12345"}
+                            {
+                                title: "Add tooltips with transefer error messages, fix jshint errors to please Jenkins",
+                                id: "668"
+                            }
                         ]
                     }
                 })
@@ -24,14 +27,6 @@
         CollectionListFooter: Harbour.View.extend({
             template: "",
             el: ".collection-list-footer.view",
-
-            serialize: function () {
-                var view = this;
-
-                view.render({
-                    json: "hello"
-                });
-            }
         }),
 
         SectionTitle: Harbour.View.extend({
@@ -41,9 +36,11 @@
             serialize: function () {
                 var view = this;
 
-                view.render({json: {
-                    title: "Not Jenkins"
-                }});
+                view.render({
+                    json: {
+                        title: view.options.title
+                    }
+                });
             }
         }),
 
@@ -54,13 +51,25 @@
             serialize: function () {
                 var view = this;
 
+                var baseURL = Backbone.history.fragment;
+                if (baseURL.indexOf("/") !== -1) {
+                    baseURL = baseURL.substring(0, baseURL.lastIndexOf("/"));
+                }
+
                 view.render({
                     json: {
+                        sectionRoot: baseURL,
                         sections: [
                             {
-                                url: "foo",
-                                icon: "dot-circle-o",
-                                title: "Things"
+                                url: "home",
+                                icon: "home",
+                                active: "active",
+                                title: "Home"
+                            },
+                            {
+                                url: "builds",
+                                icon: "cogs",
+                                title: "Builds"
                             }
                         ]
                     }

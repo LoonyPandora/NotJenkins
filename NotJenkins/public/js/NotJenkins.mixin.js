@@ -3,8 +3,8 @@
 
     NotJenkins.Mixin = {
         name: "Not Jenkins",
-        icon: "anchor",
-        layout: "/core/layouts/collection-list.html"
+        icon: "cogs",
+        layout: "/core/layouts/with-collection-list.html"
     };
 
 })(Harbour.Module.register("NotJenkins"));

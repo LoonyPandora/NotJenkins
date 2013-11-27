@@ -3,11 +3,15 @@
 
     NotJenkins.Router = Harbour.Router.extend({
         routes: {
-            "/notjenkins":"index"
+            "NotJenkins" : "index"
         },
 
         index: function () {
-            console.log("notjenkins");
+            _.each([
+                new NotJenkins.View.CollectionList()
+            ], function (view, index) {
+                view.serialize();
+            });
         }
     });
 

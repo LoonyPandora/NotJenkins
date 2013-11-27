@@ -15,7 +15,7 @@
         pull: function (pullRequest) {
             _.each([
                 new NotJenkins.View.CollectionList(),
-                new NotJenkins.View.CollectionListFooter(),
+                new NotJenkins.View.BlankView({ el: ".collection-list-footer.view" }),
                 new NotJenkins.View.SectionTitle({ title: "Pull Request #"+pullRequest }),
                 new NotJenkins.View.Subnav()
             ], function (view, index) {
@@ -26,9 +26,9 @@
         index: function () {
             _.each([
                 new NotJenkins.View.CollectionList(),
-                new NotJenkins.View.CollectionListFooter(),
+                new NotJenkins.View.BlankView({ el: ".collection-list-footer.view" }),
+                new NotJenkins.View.BlankView({ el: ".subnav.view" }),
                 new NotJenkins.View.SectionTitle({ title: "Not Jenkins" }),
-                new NotJenkins.View.Subnav()
             ], function (view, index) {
                 view.serialize();
             });

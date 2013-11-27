@@ -24,9 +24,8 @@
             }
         }),
 
-        CollectionListFooter: Harbour.View.extend({
-            template: "",
-            el: ".collection-list-footer.view",
+        BlankView: Harbour.View.extend({
+            template: ""
         }),
 
         SectionTitle: Harbour.View.extend({

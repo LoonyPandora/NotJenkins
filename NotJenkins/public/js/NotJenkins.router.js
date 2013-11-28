@@ -5,35 +5,20 @@
         routes: {
             "NotJenkins":                             "index",
             "NotJenkins/pull/:pullRequestID":         "redirect",
-            "NotJenkins/pull/:pullRequestID/home":    "home",
             "NotJenkins/pull/:pullRequestID/builds":  "builds"
         },
 
         redirect: function (pullRequestID) {
-            this.navigate("NotJenkins/pull/"+pullRequestID+"/home", { trigger: true, replace: true });
+            this.navigate("NotJenkins/pull/"+pullRequestID+"/builds", { trigger: true, replace: true });
         },
 
         builds: function (pullRequestID) {
             _.each([
                 new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
-                new NotJenkins.View.SectionTitle({ title: "Add tooltips with transefer error messages, fix jshint errors to please Jenkins" }),
+                new NotJenkins.View.SectionTitle({ title: "Add tooltips with transfer error messages, fix jshint errors to please Jenkins" }),
                 new NotJenkins.View.Subnav(),
                 new NotJenkins.View.ContentBuild()
-            ], function (view, index) {
-                view.serialize({
-                    pullRequestID: pullRequestID
-                });
-            });
-        },
-
-        home: function (pullRequestID) {
-            _.each([
-                new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
-                new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
-                new NotJenkins.View.SectionTitle({ title: "Pull Request #"+pullRequestID }),
-                new NotJenkins.View.Subnav(),
-                new NotJenkins.View.ContentHome()
             ], function (view, index) {
                 view.serialize({
                     pullRequestID: pullRequestID

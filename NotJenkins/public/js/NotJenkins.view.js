@@ -67,11 +67,6 @@
                         sectionActive: activeSection,
                         sections: [
                             {
-                                url: "home",
-                                icon: "home",
-                                title: "Home"
-                            },
-                            {
                                 url: "builds",
                                 icon: "cogs",
                                 title: "Builds"
@@ -95,18 +90,6 @@
             }
         }),
 
-        ContentHome: Harbour.View.extend({
-            template: "/modules/NotJenkins/templates/content-home.html",
-            el: ".content.view",
-
-            serialize: function () {
-                var view = this;
-
-                view.render({
-                    json: {}
-                });
-            }
-        }),
     };
 
 })(Harbour.Module.register("NotJenkins"));

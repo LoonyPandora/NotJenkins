@@ -18,7 +18,8 @@
                 new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
                 new NotJenkins.View.SectionTitle({ title: "Pull Request #"+pullRequestID+" - Build List" }),
-                new NotJenkins.View.Subnav()
+                new NotJenkins.View.Subnav(),
+                new NotJenkins.View.ContentBuild()
             ], function (view, index) {
                 view.serialize({
                     pullRequestID: pullRequestID
@@ -31,7 +32,8 @@
                 new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
                 new NotJenkins.View.SectionTitle({ title: "Pull Request #"+pullRequestID }),
-                new NotJenkins.View.Subnav()
+                new NotJenkins.View.Subnav(),
+                new NotJenkins.View.ContentHome()
             ], function (view, index) {
                 view.serialize({
                     pullRequestID: pullRequestID
@@ -44,6 +46,7 @@
                 new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
                 new NotJenkins.View.Blank({ el: ".subnav.view" }),
+                new NotJenkins.View.Blank({ el: ".content.view" }),
                 new NotJenkins.View.SectionTitle({ title: "Not Jenkins" }),
             ], function (view, index) {
                 view.serialize();

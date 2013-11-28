@@ -19,6 +19,10 @@
                             {
                                 title: "Add tooltips with transefer error messages, fix jshint errors to please Jenkins",
                                 id: "668"
+                            },
+                            {
+                                title: "EUCP Unit Testing",
+                                id: "685"
                             }
                         ]
                     }
@@ -77,7 +81,32 @@
                 });
             }
         }),
-        
+
+        ContentBuild: Harbour.View.extend({
+            template: "/modules/NotJenkins/templates/content-build.html",
+            el: ".content.view",
+
+            serialize: function () {
+                var view = this;
+
+                view.render({
+                    json: {}
+                });
+            }
+        }),
+
+        ContentHome: Harbour.View.extend({
+            template: "/modules/NotJenkins/templates/content-home.html",
+            el: ".content.view",
+
+            serialize: function () {
+                var view = this;
+
+                view.render({
+                    json: {}
+                });
+            }
+        }),
     };
 
 })(Harbour.Module.register("NotJenkins"));

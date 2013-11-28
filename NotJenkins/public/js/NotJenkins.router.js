@@ -17,7 +17,7 @@
             _.each([
                 new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
-                new NotJenkins.View.SectionTitle({ title: "Pull Request #"+pullRequestID+" - Build List" }),
+                new NotJenkins.View.SectionTitle({ title: "Add tooltips with transefer error messages, fix jshint errors to please Jenkins" }),
                 new NotJenkins.View.Subnav(),
                 new NotJenkins.View.ContentBuild()
             ], function (view, index) {

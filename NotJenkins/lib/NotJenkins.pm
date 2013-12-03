@@ -52,7 +52,7 @@ get qr{^ /NotJenkins/builds $}x => sub {
 
 get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
     my $pr_sth = database->prepare(q{
-        SELECT pull_requests.id, github_number, github_title, github_state, github_created_at, github_updated_at, display_title
+        SELECT pull_requests.id, github_number, github_title, github_body, github_state, github_created_at, github_updated_at, display_title
         FROM pull_requests
         LEFT JOIN projects ON project_id = projects.id
         WHERE github_number = ?
@@ -82,10 +82,10 @@ get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
         }
     }
 
-    return {
-        pull_request => $pull_request,
-        builds => $builds
-    };
+    # Add the builds to the model
+    $pull_request->{builds} = $builds;
+
+    return $pull_request;
 };
 
 

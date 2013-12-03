@@ -12,7 +12,7 @@
 
                 var collection = new NotJenkins.Collection.Builds();
 
-                collection.fetch().done(function() {
+                collection.fetch().done(function () {
                     // TODO: Why am I getting an array back?
                     var builds = collection.toJSON()[0];
 
@@ -30,33 +30,59 @@
         Blank: Harbour.View.extend({ template: "" }),
 
         SectionTitle: Harbour.View.extend({
-            template: "/core/templates/header.html",
+            template: "/modules/NotJenkins/templates/header.html",
             el: ".section-title.view",
 
-            serialize: function () {
+            serialize: function (options) {
                 var view = this;
+                options = options || {}
 
-                view.render({
-                    json: {
-                        title: view.options.title
-                    }
+                if (view.options.title) {
+                    view.render({
+                        json: {
+                            github_title: view.options.title
+                        }
+                    });
+                }
+
+                var model = new NotJenkins.Model.PullRequest({
+                    github_number: options.pullRequestID
                 });
+
+                model.fetch().done(function () {
+                    view.render({
+                        json: model.toJSON()
+                    });
+                })
             }
         }),
 
  
         PageTitle: Harbour.View.extend({
-            template: "/core/templates/header.html",
+            template: "/modules/NotJenkins/templates/header.html",
             el: "title.view",
 
-            serialize: function () {
+            serialize: function (options) {
                 var view = this;
+                options = options || {}
 
-                view.render({
-                    json: {
-                        title: view.options.title
-                    }
+                if (view.options.title) {
+                    view.render({
+                        json: {
+                            github_title: view.options.title
+                        }
+                    });
+                }
+
+                var model = new NotJenkins.Model.PullRequest({
+                    github_number: options.pullRequestID
                 });
+
+                model.fetch().done(function () {
+                    view.render({
+                        json: model.toJSON()
+                    });
+                })
             }
         }),
  
@@ -83,11 +109,6 @@
                                 url: "builds",
                                 icon: "cogs",
                                 title: "Builds"
-                            },
-                            {
-                                url: "logs",
-                                icon: "list",
-                                title: "Logs"
                             }
                         ]
                     }
@@ -99,12 +120,23 @@
             template: "/modules/NotJenkins/templates/content-build.html",
             el: ".content.view",
 
-            serialize: function () {
+            serialize: function (options) {
                 var view = this;
+                options = options || {}
 
-                view.render({
-                    json: {}
+                var model = new NotJenkins.Model.PullRequest({
+                    github_number: options.pullRequestID
                 });
+
+                model.fetch().done(function () {
+                    var json = model.toJSON();
+
+                    json.github_body = json.github_body.replace(/\\r\\n/g, "\n");
+
+                    view.render({
+                        json: json
+                    });
+                })
             }
         }),
 

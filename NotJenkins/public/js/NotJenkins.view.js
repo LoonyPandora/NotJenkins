@@ -129,12 +129,8 @@
                 });
 
                 model.fetch().done(function () {
-                    var json = model.toJSON();
-
-                    json.github_body = json.github_body.replace(/\\r\\n/g, "\n");
-
                     view.render({
-                        json: json
+                        json: model.toJSON()
                     });
                 })
             }

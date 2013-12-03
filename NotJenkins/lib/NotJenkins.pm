@@ -90,11 +90,12 @@ get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
                 for my $failure (@{$test->{failures}}) {
                     $failure->{filename_md5} = md5_hex($failure->{file});
                 }
-
             }
-
         }
     }
+
+    # Numify from the PR
+    $pull_request->{github_number} += 0;
 
     # Add the builds to the model
     $pull_request->{builds} = $builds;

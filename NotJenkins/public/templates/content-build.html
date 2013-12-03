@@ -37,7 +37,7 @@
                     <tbody>
                     <% _.each(test.failures, function(failure) { %>
                         <tr>
-                            <td><a href="https://github.com"><%- failure.file %></a></td> <!-- MD5 of Filename -->
+                            <td><a href="<%- repo_html_url %>/pull/<%- github_number %>/files#diff-<%- failure.filename_md5 %>R<%- failure.line %>"><%- failure.file %></a></td> <!-- MD5 of Filename -->
                             <td><%- failure.message %></td>
                             <td><%- failure.line %></td>
                             <td><%- failure.column %></td>

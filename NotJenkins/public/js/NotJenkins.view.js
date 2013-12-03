@@ -129,7 +129,6 @@
                 });
 
                 model.fetch().done(function () {
-
                     var json = model.toJSON();
 
                     view.render({

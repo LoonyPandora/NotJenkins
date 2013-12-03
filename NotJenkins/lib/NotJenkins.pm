@@ -3,7 +3,7 @@ package HarbourX::NotJenkins;
 use Dancer ":syntax";
 use Dancer::Plugin::Database;
 use Data::Dump qw(dump);
-
+use Digest::MD5 qw(md5_hex);
 use common::sense;
 
 
@@ -75,7 +75,7 @@ get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
     # Numify and truthify & expand stored JSON
     for my $build (@$builds) {
         $build->{id} += 0;
-        
+
         if ($build->{success}) {
             $build->{success} = \1
         } else {
@@ -84,6 +84,15 @@ get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
 
         if ($build->{build_output}) {
             $build->{build_output} = from_json $build->{build_output};
+
+            # Add the MD5 of the filename so we can link directly to the line on GitHub
+            for my $test (@{$build->{build_output}}) {
+                for my $failure (@{$test->{failures}}) {
+                    $failure->{filename_md5} = md5_hex($failure->{file});
+                }
+
+            }
+
         }
     }
 

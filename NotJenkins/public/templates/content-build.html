@@ -16,7 +16,7 @@
     <div class="panel panel-<%- build.success? 'success' : 'danger' %>">
         <div class="panel-heading">
             <h4 class="panel-title">
-                <a data-toggle="collapse" data-parent="#accordion" href="#" data-bypass="true" data-target=".p<%- build.id %>"> Build #<%- build.id %> <%- build.success? 'Passed' : 'Failed' %></a>
+                <a data-toggle="collapse" data-parent="#accordion" data-bypass="true" data-target=".p<%- build.id %>"> Build #<%- build.id %> <%- build.success? 'Passed' : 'Failed' %></a>
             </h4>
         </div>
 
@@ -37,7 +37,7 @@
                     <tbody>
                     <% _.each(test.failures, function(failure) { %>
                         <tr>
-                            <td><%- failure.file %></td>
+                            <td><a href="https://github.com"><%- failure.file %></a></td> <!-- MD5 of Filename -->
                             <td><%- failure.message %></td>
                             <td><%- failure.line %></td>
                             <td><%- failure.column %></td>

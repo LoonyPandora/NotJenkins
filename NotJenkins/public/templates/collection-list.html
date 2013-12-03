@@ -1,0 +1,28 @@
+<% if (branches) { %>
+<h4>Branches</h4>
+<ul>
+    <% _.each(branches, function(model) { %>
+    <li>
+        <a href="/NotJenkins/branch/<%- model.branch_name %>" class="<%- sectionActive === model.branch_name? 'active' : "" %>">
+            <h5><%- model.branch_title %></h5>
+            <span class="label label-success">Passed</span>
+            <span class="label label-default"><%- model.display_title %></span>
+        </a>
+    </li>
+    <% }); %>
+</ul>
+<% } %>
+
+<h4>Open Pull Requests</h4>
+<ul>
+    <% _.each(pull_requests, function(model) { %>
+    <li>
+        <a href="/NotJenkins/pull/<%- model.github_number %>" class="<%- sectionActive === model.github_number? 'active' : "" %>">
+            <h5><%- model.github_title %></h5>
+            <span class="label label-success">Passed</span>
+            <span class="label label-default"><%- model.display_title %></span>
+            <span class="label label-default">#<%- model.github_number %></span>
+        </a>
+    </li>
+    <% }); %>
+</ul>

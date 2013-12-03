@@ -14,7 +14,7 @@
 
         builds: function (pullRequestID) {
             _.each([
-                new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
+                new NotJenkins.View.CollectionList(),
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
                 new NotJenkins.View.SectionTitle({ title: "Add tooltips with transfer error messages, fix jshint errors to please Jenkins" }),
                 new NotJenkins.View.PageTitle({ title: "Add tooltips with transfer error messages, fix jshint errors to please Jenkins" }),
@@ -22,7 +22,7 @@
                 new NotJenkins.View.ContentBuild()
             ], function (view, index) {
                 view.serialize({
-                    pullRequestID: pullRequestID
+                    pullRequestID: parseInt(pullRequestID, 10)
                 });
             });
         },

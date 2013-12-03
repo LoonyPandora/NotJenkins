@@ -3,30 +3,27 @@
 
     NotJenkins.View = {
         CollectionList: Harbour.View.extend({
-            template: "/core/templates/collection-list.html",
+            template: "/modules/NotJenkins/templates/collection-list.html",
             el: ".collection-list.view",
 
             serialize: function (options) {
                 var view = this;
                 options = options || {}
 
-                view.render({
-                    json: {
-                        sectionTitle: view.options.title,
-                        sectionRoot: "NotJenkins/pull",
-                        sectionActive: options.pullRequestID,
-                        models: [
-                            {
-                                title: "Add tooltips with transefer error messages, fix jshint errors to please Jenkins",
-                                id: "668"
-                            },
-                            {
-                                title: "EUCP Unit Testing",
-                                id: "685"
-                            }
-                        ]
-                    }
-                })
+                var collection = new NotJenkins.Collection.Builds();
+
+                collection.fetch().done(function() {
+                    // TODO: Why am I getting an array back?
+                    var builds = collection.toJSON()[0];
+
+                    view.render({
+                        json: {
+                            sectionActive: options.pullRequestID,
+                            branches: builds.branches,
+                            pull_requests: builds.pull_requests
+                        }
+                    })
+                });
             }
         }),
 

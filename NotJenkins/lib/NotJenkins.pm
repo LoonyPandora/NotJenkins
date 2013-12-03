@@ -75,7 +75,12 @@ get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
     # Numify and truthify & expand stored JSON
     for my $build (@$builds) {
         $build->{id} += 0;
-        $build->{success} = \1 if $build->{success};
+        
+        if ($build->{success}) {
+            $build->{success} = \1
+        } else {
+            $build->{success} = \0;
+        }
 
         if ($build->{build_output}) {
             $build->{build_output} = from_json $build->{build_output};

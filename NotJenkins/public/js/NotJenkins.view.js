@@ -47,6 +47,22 @@
             }
         }),
 
+ 
+        PageTitle: Harbour.View.extend({
+            template: "/core/templates/header.html",
+            el: "title.view",
+
+            serialize: function () {
+                var view = this;
+
+                view.render({
+                    json: {
+                        title: view.options.title
+                    }
+                });
+            }
+        }),
+ 
         Subnav: Harbour.View.extend({
             template: "/core/templates/subnav.html",
             el: ".subnav.view",
@@ -70,6 +86,11 @@
                                 url: "builds",
                                 icon: "cogs",
                                 title: "Builds"
+                            },
+                            {
+                                url: "logs",
+                                icon: "list",
+                                title: "Logs"
                             }
                         ]
                     }

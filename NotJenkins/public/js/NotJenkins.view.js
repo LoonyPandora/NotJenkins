@@ -37,11 +37,10 @@
                 var view = this;
                 options = options || {}
 
-
                 if (view.options.title) {
-                    view.render({
+                    return view.render({
                         json: {
-                            github_title: view.options.title
+                            title: view.options.title
                         }
                     });
                 }
@@ -79,9 +78,9 @@
                 options = options || {}
 
                 if (view.options.title) {
-                    view.render({
+                    return view.render({
                         json: {
-                            github_title: view.options.title
+                            title: view.options.title
                         }
                     });
                 }

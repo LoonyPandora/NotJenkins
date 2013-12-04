@@ -18,7 +18,7 @@
 
                     view.render({
                         json: {
-                            sectionActive: options.pullRequestID,
+                            sectionActive: options.pullRequestID || options.branchName,
                             branches: builds.branches,
                             pull_requests: builds.pull_requests
                         }
@@ -37,6 +37,7 @@
                 var view = this;
                 options = options || {}
 
+
                 if (view.options.title) {
                     view.render({
                         json: {
@@ -45,13 +46,24 @@
                     });
                 }
 
-                var model = new NotJenkins.Model.PullRequest({
-                    github_number: options.pullRequestID
-                });
+                var model;
+                if (options.pullRequestID) {
+                    model = new NotJenkins.Model.PullRequest({
+                        github_number: options.pullRequestID
+                    });
+                } else if (options.branchName) {
+                    model = new NotJenkins.Model.Branch({
+                        branch_name: options.branchName
+                    });
+                }
 
                 model.fetch().done(function () {
+                    var json = model.toJSON();
+
+                    json.title = json.github_title || json.branch_title;
+
                     view.render({
-                        json: model.toJSON()
+                        json: json
                     });
                 })
             }
@@ -74,13 +86,25 @@
                     });
                 }
 
-                var model = new NotJenkins.Model.PullRequest({
-                    github_number: options.pullRequestID
-                });
+                var model;
+                if (options.pullRequestID) {
+                    model = new NotJenkins.Model.PullRequest({
+                        github_number: options.pullRequestID
+                    });
+                } else if (options.branchName) {
+                    model = new NotJenkins.Model.Branch({
+                        branch_name: options.branchName
+                    });
+                }
+
 
                 model.fetch().done(function () {
+                    var json = model.toJSON();
+
+                    json.title = json.github_title || json.branch_title;
+
                     view.render({
-                        json: model.toJSON()
+                        json: json
                     });
                 })
             }
@@ -116,8 +140,8 @@
             }
         }),
 
-        ContentBuild: Harbour.View.extend({
-            template: "/modules/NotJenkins/templates/content-build.html",
+        PullRequestContent: Harbour.View.extend({
+            template: "/modules/NotJenkins/templates/pull-request-content.html",
             el: ".content.view",
 
             serialize: function (options) {
@@ -135,6 +159,29 @@
                         json: json
                     });
                 })
+            }
+        }),
+
+        BranchContent: Harbour.View.extend({
+            template: "/modules/NotJenkins/templates/branch-content.html",
+            el: ".content.view",
+
+            serialize: function (options) {
+                var view = this;
+                options = options || {}
+
+                var model = new NotJenkins.Model.Branch({
+                    branch_name: options.branchName
+                });
+
+                model.fetch().done(function () {
+                    var json = model.toJSON();
+
+                    view.render({
+                        json: json
+                    });
+                })
+
             }
         }),
 

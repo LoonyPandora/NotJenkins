@@ -1,0 +1,50 @@
+
+<p>
+    <a href="<%- repo_html_url %>/pull/<%- github_number %>" class="btn btn-default btn-lg fa fa-github" role="button">
+        View On GitHub
+    </a>
+</p>
+
+<hr>
+
+<div class="panel-group" id="accordion">
+    <% _.each(builds, function(build, index) { %>
+    <div class="panel panel-<%- build.success? 'success' : 'danger' %>">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" data-bypass="true" data-target=".p<%- build.id %>"> Build #<%- build.id %> <%- build.success? 'Passed' : 'Failed' %></a>
+            </h4>
+        </div>
+
+        <div class="panel-collapse collapse p<%- build.id %> <%- index === 0? 'in' : '' %>">
+            <div class="panel-body table-responsive">
+            <% _.each(build.build_output, function(test) { %>
+                <% if (test.failures.length === 0) { return true; } %>
+                <h4><%- test.title %></h4>
+                <table class="table table-condensed table-hover">
+                    <thead>
+                        <tr>
+                            <th class="col-xs-6">File</th>
+                            <th>Error</th>
+                            <th>Line</th>
+                            <th>Col</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <% _.each(test.failures, function(failure) { %>
+                        <tr>
+                            <td><a href="<%- repo_html_url %>/pull/<%- github_number %>/files#diff-<%- failure.filename_md5 %>R<%- failure.line %>"><%- failure.file %></a></td>
+                            <td><%- failure.message %></td>
+                            <td><%- failure.line %></td>
+                            <td><%- failure.column %></td>
+                        </tr>
+                    <% }); %>
+                    </tbody>
+                </table>
+            <% }); %>
+            </div>
+        </div>
+    </div>
+    <% }); %>
+</div>
+

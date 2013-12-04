@@ -4,6 +4,8 @@ use Dancer ":syntax";
 use Dancer::Plugin::Database;
 use Data::Dump qw(dump);
 use Digest::MD5 qw(md5_hex);
+use DateTime::Format::MySQL;
+use DateTime::Format::RFC3339;
 use common::sense;
 
 
@@ -119,7 +121,7 @@ get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
         ORDER BY builds.id DESC
     });
 
-    $branch_sth->execute(captures->{branch_name});
+
     $build_sth->execute(captures->{branch_name});
 
     my $branch = $branch_sth->fetchall_hashref([]);
@@ -139,6 +141,38 @@ get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
     $branch->{builds} = $builds;
 
     return $branch;
+};
+
+
+post qr{^ /NotJenkins/hooks/push $}x => sub {
+
+};
+
+
+post qr{^ /NotJenkins/hooks/pull_request $}x => sub {
+    my $params = params();
+
+    my $insert_sth = database->prepare(q{
+        INSERT INTO pull_requests (project_id, github_number, github_title, github_state, github_created_at, github_updated_at)
+        VALUES ( (SELECT id FROM projects WHERE repo_name = ?), ?, ?, ?, ?, ? )
+    });
+
+    my $created_at = DateTime::Format::RFC3339->parse_datetime( $params->{pull_request}->{created_at} );
+    my $updated_at = DateTime::Format::RFC3339->parse_datetime( $params->{pull_request}->{updated_at} );
+
+    return $insert_sth->execute(
+        $params->{pull_request}->{base}->{repo}->{name},
+        $params->{pull_request}->{number},
+        $params->{pull_request}->{title},
+        $params->{pull_request}->{state},
+        DateTime::Format::MySQL->format_datetime($created_at),
+        DateTime::Format::MySQL->format_datetime($updated_at),
+    );
+
+
+    # die dump $params;
+
+    # return $params;
 };
 
 

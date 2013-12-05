@@ -6,6 +6,7 @@ use Data::Dump qw(dump);
 use Digest::MD5 qw(md5_hex);
 use DateTime::Format::MySQL;
 use DateTime::Format::RFC3339;
+use HarbourX::NotJenkins::Utils;
 use common::sense;
 
 
@@ -151,15 +152,23 @@ post qr{^ /NotJenkins/hooks/push $}x => sub {
     my $branch_name = $params->{ref} =~ s{^refs/heads/}{}r;
 
     my $update_sth = database->prepare(q{
-        UPDATE branches
-        SET updated_at = UTC_TIMESTAMP()
-        WHERE branch_name = ?
+        UPDATE branches, projects
+        SET branches.updated_at = UTC_TIMESTAMP()
+        WHERE branches.branch_name = ?
+        AND projects.repo_name = ?
+        AND projects.repo_owner = ?
     });
 
-    my $success = $update_sth->execute( $branch_name );
+    my $success = $update_sth->execute(
+        $branch_name,
+        $params->{repository}->{name},
+        $params->{repository}->{owner}->{name},
+    );
+
 
     if ($success ne "0E0") {
         return {
+            "message" => $success,
             "success" => \1
         };
     }

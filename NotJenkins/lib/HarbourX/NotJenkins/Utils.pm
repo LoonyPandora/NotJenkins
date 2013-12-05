@@ -58,4 +58,54 @@ sub download_branch {
 }
 
 
+
+sub download_pull_request {
+    my ($branch_name) = @_;
+
+    my $project_sth = database->prepare(q{
+        SELECT repo_name, repo_owner, repo_user, repo_password
+        FROM projects
+        WHERE enabled = 1
+        LIMIT 1
+    });
+
+    $project_sth->execute();
+
+    my $repo = $project_sth->fetchall_hashref([]);
+
+    my $download = HTTP::Request->new(
+        GET => "https://github.com/".$repo->{repo_owner}."/".$repo->{repo_name}."/zipball/".$branch_name
+    );
+
+    $download->authorization_basic($repo->{repo_user}, $repo->{repo_password});
+
+    my $ua = LWP::UserAgent->new();
+
+    my $zipfile = File::Temp->new( SUFFIX => '.zip', UNLINK => 1 );
+    my $response = $ua->request($download, $zipfile->filename);
+
+    if ($response->is_error) {
+        die 'Could not download zipball: ' . $response->code . ' ' . $response->message;
+    }
+
+    if ($response->is_success) {
+        my $extractor = Archive::Extract->new( archive => $zipfile->filename );
+        $extractor->extract( to => File::Temp->newdir( CLEANUP => 0 ) );
+
+        return $extractor->extract_path();
+    }
+}
+
+
+
+
+
+sub run_docker_tests {
+    my ($repo_dir) = @_;
+
+
+
+}
+
+
 1;

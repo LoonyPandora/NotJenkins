@@ -211,7 +211,11 @@ post qr{^ /NotJenkins/hooks/pull_request $}x => sub {
 
 
     if ($success) {
+
+        die HarbourX::NotJenkins::Utils::download_pull_request($params->{pull_request}->{head}->{label});
+
         return {
+            "message" => $success,
             "success" => \1
         };
     }

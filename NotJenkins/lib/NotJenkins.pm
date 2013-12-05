@@ -145,7 +145,29 @@ get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
 
 
 post qr{^ /NotJenkins/hooks/push $}x => sub {
+    my $params = params();
 
+    # Gets the raw branch name, instead of the full refspec
+    my $branch_name = $params->{ref} =~ s{^refs/heads/}{}r;
+
+    my $update_sth = database->prepare(q{
+        UPDATE branches
+        SET updated_at = UTC_TIMESTAMP()
+        WHERE branch_name = ?
+    });
+
+    my $success = $update_sth->execute( $branch_name );
+
+    if ($success ne "0E0") {
+        return {
+            "success" => \1
+        };
+    }
+
+    return {
+        "success" => \0,
+        "message" => $success
+    }
 };
 
 
@@ -155,24 +177,38 @@ post qr{^ /NotJenkins/hooks/pull_request $}x => sub {
     my $insert_sth = database->prepare(q{
         INSERT INTO pull_requests (project_id, github_number, github_title, github_state, github_created_at, github_updated_at)
         VALUES ( (SELECT id FROM projects WHERE repo_name = ?), ?, ?, ?, ?, ? )
+        ON DUPLICATE KEY UPDATE
+            github_title = ?,
+            github_state = ?,
+            github_updated_at = ?
     });
 
     my $created_at = DateTime::Format::RFC3339->parse_datetime( $params->{pull_request}->{created_at} );
     my $updated_at = DateTime::Format::RFC3339->parse_datetime( $params->{pull_request}->{updated_at} );
 
-    return $insert_sth->execute(
+    my $success = $insert_sth->execute(
         $params->{pull_request}->{base}->{repo}->{name},
         $params->{pull_request}->{number},
         $params->{pull_request}->{title},
         $params->{pull_request}->{state},
         DateTime::Format::MySQL->format_datetime($created_at),
         DateTime::Format::MySQL->format_datetime($updated_at),
+        $params->{pull_request}->{title},
+        $params->{pull_request}->{state},
+        DateTime::Format::MySQL->format_datetime($updated_at)
     );
 
 
-    # die dump $params;
+    if ($success) {
+        return {
+            "success" => \1
+        };
+    }
 
-    # return $params;
+    return {
+        "success" => \0,
+        "message" => $success
+    }
 };
 
 

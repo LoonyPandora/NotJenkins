@@ -167,6 +167,8 @@ post qr{^ /NotJenkins/hooks/push $}x => sub {
 
 
     if ($success ne "0E0") {
+        die HarbourX::NotJenkins::Utils::download_branch($params->{repository}->{name});
+
         return {
             "message" => $success,
             "success" => \1

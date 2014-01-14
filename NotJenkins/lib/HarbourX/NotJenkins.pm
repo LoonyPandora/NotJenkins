@@ -12,9 +12,19 @@ use common::sense;
 
 
 get qr{^ /NotJenkins/tmp $}x => sub {
-    HarbourX::NotJenkins::Utils::run_docker_tests(
-        "/Users/james/Code/End-User-CP"
-    );
+    my $insert_sth = database->prepare(q{
+        INSERT INTO builds (project_id, branch_id, status)
+        VALUES (?, ?, ?)
+    });
+
+    my $success = $insert_sth->execute(1, 1, "running");
+
+    if ($success ne "0E0") {
+        HarbourX::NotJenkins::Utils::run_docker_tests(
+            "/Users/james/Code/End-User-CP"
+        );
+    }
+
 };
 
 get qr{^ /NotJenkins/builds $}x => sub {

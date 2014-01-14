@@ -3,7 +3,6 @@ package HarbourX::NotJenkins::Utils;
 use common::sense;
 
 use AnyEvent;
-use AnyEvent::HTTP;
 use Archive::Extract;
 use Archive::Tar;
 use Dancer ':syntax';
@@ -17,8 +16,6 @@ use Forks::Super;
 use HTTP::Request;
 use LWP;
 use Promises qw(collect deferred);
-use Future;
-use Future::Utils qw(repeat_until_success);
 use YAML::XS qw(LoadFile);
 
 
@@ -111,23 +108,10 @@ sub run_docker_tests {
 
     my $config = LoadFile("$repo_dir/.leeroy.yml");
 
-    my @commands = values %{$config->{tests}};
-    for my $tests (@commands) {
-        # my $cmd = join('; ', @$tests);
-
-        # async_cmd($cmd);
-        # say "CMD: $cmd = " . qx{$cmd};
-    };
-
-    # my @asdf = map { async_cmd( join('; ', @$_) ) } @commands;
-
-
-    # die dump \@asdf;
-
     my $cv = AnyEvent->condvar;
  
     collect(
-        map { async_cmd( join('; ', @$_) ) } @commands
+        map { async_cmd_run( $_ ) } values %{$config->{tests}}
     )->then(
         sub {
             $cv->send({
@@ -137,31 +121,54 @@ sub run_docker_tests {
         sub { $cv->croak( 'ERROR' ) }
     );
  
-    my $all_product_info = $cv->recv;
+    my $all_tests = $cv->recv;
 
-    return $all_product_info;
+    return $all_tests;
 }
 
 
 
 
-
-sub async_cmd {
+sub async_cmd_run {
     my ($cmd) = @_;
 
     my $d = deferred;
 
     fork {
         sub => sub {
-            qx{$cmd};
-            say "Running: $cmd";
+            my $joined = join('; ', @$cmd);
+            my $output = qx{$joined};
+
+            my $insert_sth = database->prepare(q{
+                INSERT INTO build_parts (build_id, output)
+                VALUES (?, ?)
+            });
+
+            # hardcoded build_id for now
+            $insert_sth->execute(4, $output);
         },
         callback => {
             finish => sub {
+                my $update_sth = database("fork")->prepare(q{
+                    UPDATE builds
+                    SET status = ?
+                    WHERE id = ?
+                });
+
+                $update_sth->execute("pass", 4);
+
                 $d->resolve( "DONE!" );
             },
             fail => sub {
-                $d->reject( "FAILED!" )
+                my $update_sth = database("fork")->prepare(q{
+                    UPDATE builds
+                    SET status = ?
+                    WHERE id = ?
+                });
+
+                $update_sth->execute("fail", 4);
+
+                $d->reject( "FAILED!" );
             },
         }
     };

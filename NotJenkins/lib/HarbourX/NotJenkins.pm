@@ -7,8 +7,15 @@ use Digest::MD5 qw(md5_hex);
 use DateTime::Format::MySQL;
 use DateTime::Format::RFC3339;
 use HarbourX::NotJenkins::Utils;
+
 use common::sense;
 
+
+get qr{^ /NotJenkins/tmp $}x => sub {
+    HarbourX::NotJenkins::Utils::run_docker_tests(
+        "/Users/james/Code/End-User-CP"
+    );
+};
 
 get qr{^ /NotJenkins/builds $}x => sub {
     my $pr_sth = database->prepare(q{
@@ -212,7 +219,9 @@ post qr{^ /NotJenkins/hooks/pull_request $}x => sub {
 
     if ($success) {
 
-        die HarbourX::NotJenkins::Utils::download_pull_request($params->{pull_request}->{head}->{label});
+        HarbourX::NotJenkins::Utils::run_docker_tests(
+            HarbourX::NotJenkins::Utils::download_pull_request($params->{pull_request}->{head}->{label})
+        );
 
         return {
             "message" => $success,

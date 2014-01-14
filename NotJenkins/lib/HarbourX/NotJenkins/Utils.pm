@@ -2,6 +2,8 @@ package HarbourX::NotJenkins::Utils;
 
 use common::sense;
 
+use AnyEvent;
+use AnyEvent::HTTP;
 use Archive::Extract;
 use Archive::Tar;
 use Dancer ':syntax';
@@ -11,9 +13,13 @@ use File::Find;
 use File::Path;
 use File::Slurp;
 use File::Temp;
+use Forks::Super;
 use HTTP::Request;
 use LWP;
-
+use Promises qw(collect deferred);
+use Future;
+use Future::Utils qw(repeat_until_success);
+use YAML::XS qw(LoadFile);
 
 
 
@@ -103,8 +109,64 @@ sub download_pull_request {
 sub run_docker_tests {
     my ($repo_dir) = @_;
 
+    my $config = LoadFile("$repo_dir/.leeroy.yml");
+
+    my @commands = values %{$config->{tests}};
+    for my $tests (@commands) {
+        # my $cmd = join('; ', @$tests);
+
+        # async_cmd($cmd);
+        # say "CMD: $cmd = " . qx{$cmd};
+    };
+
+    # my @asdf = map { async_cmd( join('; ', @$_) ) } @commands;
 
 
+    # die dump \@asdf;
+
+    my $cv = AnyEvent->condvar;
+ 
+    collect(
+        map { async_cmd( join('; ', @$_) ) } @commands
+    )->then(
+        sub {
+            $cv->send({
+                output => \@_,
+            });
+        },
+        sub { $cv->croak( 'ERROR' ) }
+    );
+ 
+    my $all_product_info = $cv->recv;
+
+    return $all_product_info;
+}
+
+
+
+
+
+sub async_cmd {
+    my ($cmd) = @_;
+
+    my $d = deferred;
+
+    fork {
+        sub => sub {
+            qx{$cmd};
+            say "Running: $cmd";
+        },
+        callback => {
+            finish => sub {
+                $d->resolve( "DONE!" );
+            },
+            fail => sub {
+                $d->reject( "FAILED!" )
+            },
+        }
+    };
+
+    return $d->promise;
 }
 
 

@@ -114,11 +114,29 @@ sub run_docker_tests {
         map { async_cmd_run( $_ ) } values %{$config->{tests}}
     )->then(
         sub {
+            my $update_sth = database("fork")->prepare(q{
+                UPDATE builds
+                SET status = ?
+                WHERE id = ?
+            });
+
+            $update_sth->execute("pass", 4);
+
             $cv->send({
                 output => \@_,
             });
         },
-        sub { $cv->croak( 'ERROR' ) }
+        sub {
+            my $update_sth = database("fork")->prepare(q{
+                UPDATE builds
+                SET status = ?
+                WHERE id = ?
+            });
+
+            $update_sth->execute("fail", 4);
+
+            $cv->croak( "ERROR" );
+        }
     );
  
     my $all_tests = $cv->recv;
@@ -136,38 +154,23 @@ sub async_cmd_run {
 
     fork {
         sub => sub {
-            my $joined = join('; ', @$cmd);
-            my $output = qx{$joined};
-
             my $insert_sth = database->prepare(q{
-                INSERT INTO build_parts (build_id, output)
-                VALUES (?, ?)
+                INSERT INTO build_parts (build_id, command, output)
+                VALUES (?, ?, ?)
             });
 
-            # hardcoded build_id for now
-            $insert_sth->execute(4, $output);
+            for my $subcommand (@$cmd) {
+                my $output = qx{$subcommand};
+
+                # hardcoded build_id for now
+                $insert_sth->execute(4, $subcommand, $output);
+            };
         },
         callback => {
             finish => sub {
-                my $update_sth = database("fork")->prepare(q{
-                    UPDATE builds
-                    SET status = ?
-                    WHERE id = ?
-                });
-
-                $update_sth->execute("pass", 4);
-
                 $d->resolve( "DONE!" );
             },
             fail => sub {
-                my $update_sth = database("fork")->prepare(q{
-                    UPDATE builds
-                    SET status = ?
-                    WHERE id = ?
-                });
-
-                $update_sth->execute("fail", 4);
-
                 $d->reject( "FAILED!" );
             },
         }

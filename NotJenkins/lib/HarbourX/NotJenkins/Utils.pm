@@ -121,7 +121,13 @@ sub run_docker_tests {
         my $test_id = $insert_sth->{mysql_insertid};
 
         collect(
-            map { async_cmd_run( $_, $test_id, $options->{repo_dir} ) } $config->{tests}->{$test_title}
+            map {
+                async_cmd_run({
+                    commandlist => $_->{Commands},
+                    dockerfile  => $_->{Dockerfile},
+                    test_id     => $test_id,
+                })
+            } $config->{tests}->{$test_title}
         )->then(
             sub {
                 my $update_sth = database->prepare(q{
@@ -159,7 +165,7 @@ sub run_docker_tests {
 
 
 sub async_cmd_run {
-    my ($cmd, $test_id, $repo_dir) = @_;
+    my ($options) = @_;
 
     my $d = deferred;
 
@@ -170,13 +176,12 @@ sub async_cmd_run {
                 VALUES (?, ?, ?)
             });
 
-            for my $subcommand (@$cmd) {
-                my $output = qx{docker run -t -w /mnt/repo -v /home/docker/End-User-CP:/mnt/repo:ro EUCP $subcommand};
+            # Write out the runtests.sh file
+            my $runtests = join '\ ', @{$options->{commandlist}} if $options->{commandlist};
 
-                # info ("docker run -t -w /mnt/repo -v /home/docker/End-User-CP:/mnt/repo:ro EUCP $subcommand");
+            my $output = qx{docker run -t -w /mnt/repo -v /home/docker/End-User-CP:/mnt/repo:ro EUCP $runtests};
 
-                $insert_sth->execute($test_id, $subcommand, $output);
-            };
+            $insert_sth->execute($options->{test_id}, $runtests, $output);
         },
         callback => {
             finish => sub {

@@ -12,7 +12,7 @@ use File::Find;
 use File::Path;
 use File::Slurp;
 use File::Temp;
-use Forks::Super;
+use Forks::Super DEBUG => 1;
 use HTTP::Request;
 use LWP;
 use Promises qw(collect deferred);
@@ -104,41 +104,52 @@ sub download_pull_request {
 
 
 sub run_docker_tests {
-    my ($repo_dir) = @_;
+    my ($options) = @_;
 
-    my $config = LoadFile("$repo_dir/.leeroy.yml");
+    my $config = LoadFile($options->{repo_dir}."/.leeroy.yml");
 
     my $cv = AnyEvent->condvar;
- 
-    collect(
-        map { async_cmd_run( $_ ) } values %{$config->{tests}}
-    )->then(
-        sub {
-            my $update_sth = database("fork")->prepare(q{
-                UPDATE builds
-                SET status = ?
-                WHERE id = ?
-            });
 
-            $update_sth->execute("pass", 4);
+    my $insert_sth = database->prepare(q{
+        INSERT INTO tests (build_id, title)
+        VALUES (?, ?)
+    });
 
-            $cv->send({
-                output => \@_,
-            });
-        },
-        sub {
-            my $update_sth = database("fork")->prepare(q{
-                UPDATE builds
-                SET status = ?
-                WHERE id = ?
-            });
+    for my $test_title (keys %{$config->{tests}}) {
+        $insert_sth->execute($options->{build_id}, $test_title);
 
-            $update_sth->execute("fail", 4);
+        my $test_id = $insert_sth->{mysql_insertid};
 
-            $cv->croak( "ERROR" );
-        }
-    );
- 
+        collect(
+            map { async_cmd_run( $_, $test_id ) } $config->{tests}->{$test_title}
+        )->then(
+            sub {
+                my $update_sth = database->prepare(q{
+                    UPDATE builds
+                    SET status = ?
+                    WHERE id = ?
+                });
+
+                $update_sth->execute("pass", $options->{build_id});
+
+                $cv->send({
+                    output => \@_,
+                });
+            },
+            sub {
+                my $update_sth = database->prepare(q{
+                    UPDATE builds
+                    SET status = ?
+                    WHERE id = ?
+                });
+
+                $update_sth->execute("fail",  $options->{build_id});
+
+                $cv->croak( "ERROR" );
+            }
+        );
+    }
+
     my $all_tests = $cv->recv;
 
     return $all_tests;
@@ -148,36 +159,36 @@ sub run_docker_tests {
 
 
 sub async_cmd_run {
-    my ($cmd) = @_;
+    my ($cmd, $test_id) = @_;
 
     my $d = deferred;
 
     fork {
         sub => sub {
             my $insert_sth = database->prepare(q{
-                INSERT INTO build_parts (build_id, command, output)
+                INSERT INTO commands (test_id, command, output)
                 VALUES (?, ?, ?)
             });
 
             for my $subcommand (@$cmd) {
                 my $output = qx{$subcommand};
 
-                # hardcoded build_id for now
-                $insert_sth->execute(4, $subcommand, $output);
+                $insert_sth->execute($test_id, $subcommand, $output);
             };
         },
         callback => {
             finish => sub {
-                $d->resolve( "DONE!" );
+                $d->resolve();
             },
             fail => sub {
-                $d->reject( "FAILED!" );
+                $d->reject();
             },
         }
     };
 
+    waitall;
+
     return $d->promise;
 }
-
 
 1;

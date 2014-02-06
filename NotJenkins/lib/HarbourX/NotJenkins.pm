@@ -7,6 +7,8 @@ use Digest::MD5 qw(md5_hex);
 use DateTime::Format::MySQL;
 use DateTime::Format::RFC3339;
 use HarbourX::NotJenkins::Utils;
+use YAML::XS qw(LoadFile);
+use Try::Tiny;
 
 use common::sense;
 
@@ -20,11 +22,11 @@ get qr{^ /NotJenkins/tmp $}x => sub {
     my $success = $insert_sth->execute(1, 1, "running");
 
     if ($success ne "0E0") {
-        HarbourX::NotJenkins::Utils::run_docker_tests(
-            "/Users/james/Code/End-User-CP"
-        );
+        HarbourX::NotJenkins::Utils::run_docker_tests({
+            repo_dir => "/Users/james/Code/End-User-CP",
+            build_id => $insert_sth->{mysql_insertid},
+        });
     }
-
 };
 
 
@@ -108,37 +110,55 @@ get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
 
 
 get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
-    my $branch_sth = database->prepare(q{
-        SELECT branches.id, branch_name, branch_title, display_title, repo_html_url
-        FROM branches
+    my $command_sth = database->prepare(q{
+        SELECT builds.id AS build_id, command, output AS command_output, title AS test_title, builds.status AS build_status, (SELECT output FROM commands WHERE test_id = tests.id ORDER BY id DESC LIMIT 1) AS test_output, display_title, repo_html_url
+        FROM commands
+        LEFT JOIN tests ON commands.test_id = tests.id
+        LEFT JOIN builds ON tests.build_id = builds.id
         LEFT JOIN projects ON project_id = projects.id
-        WHERE branch_name = ?
-        LIMIT 1
+        WHERE builds.branch_id = (SELECT id FROM branches WHERE branch_name = ? LIMIT 1)
     });
 
-    my $build_sth = database->prepare(q{
-        SELECT builds.id, status
-        FROM builds
-        WHERE branch_id = (SELECT id FROM branches WHERE branch_name = ? LIMIT 1)
-        ORDER BY builds.id DESC
-    });
+    $command_sth->execute(captures->{branch_name});
+    my $commands = $command_sth->fetchall_arrayref({});
 
+    # Numify, truthify, and expand stored data for JSON output
+    my $output = {};
+    my $meta = {};
+    for my $command (@$commands) {
+        push @{ $output->{builds}->{ $command->{build_id} }->{tests}->{ $command->{test_title} }->{log} }, $command;
 
-    $build_sth->execute(captures->{branch_name});
-    $branch_sth->execute(captures->{branch_name});
+        $meta->{repo_html_url} = $command->{repo_html_url};
+        $meta->{display_title} = $command->{display_title};
 
-    my $branch = $branch_sth->fetchall_hashref([]);
-    my $builds = $build_sth->fetchall_arrayref({});
+        if (defined $command->{test_output}) {
+            try {
+                $command->{test_output} = from_json $command->{test_output};
+            }
+        }
 
-    # Numify and truthify & expand stored JSON
-    for my $build (@$builds) {
-        $build->{id} += 0;
+        $output->{builds}->{ $command->{build_id} }->{status} = $command->{build_status};
+        $output->{builds}->{ $command->{build_id} }->{tests}->{ $command->{test_title} }->{output} = $command->{test_output};
+        $output->{builds}->{ $command->{build_id} }->{id} = $command->{build_id};
+        $output->{builds}->{ $command->{build_id} }->{id} += 0;
+
+        delete $command->{build_status};
+        delete $command->{test_output};
+        delete $command->{display_title};
+        delete $command->{repo_html_url};
+        delete $command->{test_title};
+        delete $command->{build_id};
     }
 
-    # Add the builds to the model
-    $branch->{builds} = $builds;
+    my @builds = map { $_ }
+                 sort { $b->{id} <=> $a->{id} }
+                 values %{$output->{builds}};
 
-    return $branch;
+    return {
+        repo_html_url => $meta->{repo_html_url},
+        branch_title  => $meta->{display_title},
+        builds => \@builds,
+    };
 };
 
 

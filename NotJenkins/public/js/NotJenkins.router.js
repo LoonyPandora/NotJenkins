@@ -39,7 +39,7 @@
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
                 new NotJenkins.View.SectionTitle(),
                 new NotJenkins.View.PageTitle(),
-                new NotJenkins.View.Subnav(),
+                new NotJenkins.View.Blank({ el: ".subnav.view" }),
                 new NotJenkins.View.BranchContent()
             ], function (view, index) {
                 view.serialize({

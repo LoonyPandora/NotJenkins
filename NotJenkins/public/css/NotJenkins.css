@@ -1,6 +1,11 @@
 
 
-.github_body {
+#panel-NotJenkins .github_body {
     max-height: 200px;
     overflow: hidden;
+}
+
+
+#panel-NotJenkins h4 {
+    text-indent: 5px;
 }

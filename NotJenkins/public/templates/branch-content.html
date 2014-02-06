@@ -8,19 +8,29 @@
 
 <div class="panel-group" id="accordion">
     <% _.each(builds, function(build, index) { %>
-    <div class="panel panel-<%- build.success? 'success' : 'danger' %>">
+    <%
+        var statusClass;
+        if (build.status === "running") {
+            statusClass = "panel-warning"
+        } else if (build.status === 'pass') {
+            statusClass = "panel-success";
+        } else {
+            statusClass = "panel-danger"
+        }
+    %>
+    <div class="panel <%- statusClass %>">
         <div class="panel-heading">
             <h4 class="panel-title">
-                <a data-toggle="collapse" data-parent="#accordion" data-bypass="true" data-target=".p<%- build.id %>"> Build #<%- build.id %> <%- build.success? 'Passed' : 'Failed' %></a>
+                <a data-toggle="collapse" data-parent="#accordion" data-bypass="true" data-target=".p<%- build.id %>"> Build #<%- build.id %> <%- build.status %></a>
             </h4>
         </div>
 
         <div class="panel-collapse collapse p<%- build.id %> <%- index === 0? 'in' : '' %>">
             <div class="panel-body table-responsive">
-            <% _.each(build.build_output, function(test) { %>
-                <% if (test.failures.length === 0) { return true; } %>
-                <h4><%- test.title %></h4>
+            <% _.each(build.tests, function(test, title) { %>
+                <h4><%- title %></h4>
                 <table class="table table-condensed table-hover">
+                <% if (test.output.length > 0) { %>
                     <thead>
                         <tr>
                             <th class="col-xs-6">File</th>
@@ -30,16 +40,24 @@
                         </tr>
                     </thead>
                     <tbody>
-                    <% _.each(test.failures, function(failure) { %>
+                    <% _.each(test.output, function(failure) { %>
                         <tr>
-                            <td><a href="<%- repo_html_url %>/pull/<%- github_number %>/files#diff-<%- failure.filename_md5 %>R<%- failure.line %>"><%- failure.file %></a></td>
+                            <td><a href="<%- repo_html_url %>"><%- failure.file %></a></td>
                             <td><%- failure.message %></td>
                             <td><%- failure.line %></td>
                             <td><%- failure.column %></td>
                         </tr>
                     <% }); %>
                     </tbody>
+                <% } else { %>
+                    <tbody>
+                        <tr class="text-muted no-errors">
+                            <td colspan="4">No Errors Found</td>
+                        </tr>
+                    </tbody>
+                <% } %>
                 </table>
+                
             <% }); %>
             </div>
         </div>

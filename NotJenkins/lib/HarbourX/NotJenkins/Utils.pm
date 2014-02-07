@@ -176,9 +176,9 @@ sub async_cmd_run {
                 VALUES (?, ?, ?)
             });
 
-            # Write out the runtests.sh file
+            # FIXME TODO: This is trivially exploitable. We need to use the remote API rather than shelling out
+            # The Perl bindings are out of date and need to be maintained, so this will do to validate the rest of the app
             my $runtests = join '\ ', @{$options->{commandlist}} if $options->{commandlist};
-
             my $output = qx{docker run -t -w /mnt/repo -v /home/docker/End-User-CP:/mnt/repo:ro EUCP $runtests};
 
             $insert_sth->execute($options->{test_id}, $runtests, $output);

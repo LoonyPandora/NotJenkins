@@ -6,6 +6,7 @@
 
 <hr>
 
+
 <div class="panel-group" id="accordion">
     <% _.each(builds, function(build, index) { %>
     <%
@@ -30,7 +31,7 @@
             <% _.each(build.tests, function(test, title) { %>
                 <h4><%- title %></h4>
                 <table class="table table-condensed table-hover">
-                <% if (test.output.length > 0) { %>
+                <% if (test.output && test.output.length > 0) { %>
                     <thead>
                         <tr>
                             <th class="col-xs-6">File</th>

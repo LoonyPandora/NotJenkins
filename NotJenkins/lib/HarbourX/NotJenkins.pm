@@ -134,6 +134,8 @@ get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
         if (defined $command->{test_output}) {
             try {
                 $command->{test_output} = from_json $command->{test_output};
+            } catch {
+                $command->{test_output} = undef;
             }
         }
 

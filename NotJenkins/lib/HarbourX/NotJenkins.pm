@@ -168,26 +168,30 @@ get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
 
 get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
     my $command_sth = database->prepare(q{
-        SELECT builds.id AS build_id, command, output AS command_output, title AS test_title, builds.status AS build_status, (SELECT output FROM commands WHERE test_id = tests.id ORDER BY id DESC LIMIT 1) AS test_output, display_title, repo_html_url
-        FROM branches
-        LEFT JOIN projects ON projects.id = branches.project_id
-        LEFT JOIN builds ON builds.project_id = projects.id
+        SELECT builds.id AS build_id, command, output AS command_output, title AS test_title, builds.status AS build_status, (SELECT output FROM commands WHERE test_id = tests.id ORDER BY id DESC LIMIT 1) AS test_output
+        FROM builds
         LEFT JOIN tests ON tests.build_id = builds.id
         LEFT JOIN commands ON commands.test_id = tests.id
-        WHERE branch_name = ?
+        WHERE builds.branch_id = (SELECT id FROM branches WHERE branch_name = ? LIMIT 1)
     });
 
     $command_sth->execute(captures->{branch_name});
     my $commands = $command_sth->fetchall_arrayref({});
 
+    my $meta_sth = database->prepare(q{
+        SELECT display_title, repo_name, repo_html_url, branch_name, branch_title, updated_at
+        FROM branches
+        LEFT JOIN projects ON projects.id = branches.project_id
+        WHERE branch_name = ?
+    });
+
+    $meta_sth->execute(captures->{branch_name});
+    my $meta = $meta_sth->fetchall_hashref([]);
+
     # Numify, truthify, and expand stored data for JSON output
     my $output = {};
-    my $meta = {};
     for my $command (@$commands) {
         push @{ $output->{builds}->{ $command->{build_id} }->{tests}->{ $command->{test_title} }->{log} }, $command;
-
-        $meta->{repo_html_url} = $command->{repo_html_url};
-        $meta->{display_title} = $command->{display_title};
 
         if (defined $command->{test_output}) {
             try {

@@ -7,6 +7,7 @@ use Digest::MD5 qw(md5_hex);
 use DateTime::Format::MySQL;
 use DateTime::Format::RFC3339;
 use HarbourX::NotJenkins::Utils;
+use Net::GitHub::V3;
 use YAML::XS qw(LoadFile);
 use Try::Tiny;
 
@@ -28,6 +29,62 @@ get qr{^ /NotJenkins/tmp $}x => sub {
         });
     }
 };
+
+
+
+get qr{^ /NotJenkins/update_pr_list $}x => sub {
+    my $login_sth = database->prepare(q{
+        SELECT id, repo_owner, repo_name, repo_user, repo_password
+        FROM projects
+        WHERE id = 1
+        AND enabled = 1
+    });
+
+    $login_sth->execute();
+
+    my $project = $login_sth->fetchall_hashref([]);
+
+    # FIXME: use OAuth at somepoint
+    my $github = Net::GitHub::V3->new(
+        login => $project->{repo_user},
+        pass  => $project->{repo_password}
+    );
+
+    my $pull_request = $github->pull_request;
+
+    my $insert_sth = database->prepare(q{
+        INSERT INTO pull_requests (project_id, github_number, github_title, github_state, github_created_at, github_updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    });
+
+    # Due to pagination we don't get all of them, just the most recent 50 or so. That's fine for a test route like this
+    my @open_pull_requests   = $pull_request->pulls($project->{repo_owner}, $project->{repo_name}, { state => 'open'   });
+    my @closed_pull_requests = $pull_request->pulls($project->{repo_owner}, $project->{repo_name}, { state => 'closed' });
+
+    for my $pull_request ( (@open_pull_requests, @closed_pull_requests) ) {
+        my $created_at = DateTime::Format::RFC3339->parse_datetime( $pull_request->{created_at} );
+        my $updated_at = DateTime::Format::RFC3339->parse_datetime( $pull_request->{updated_at} );
+
+        my $success = $insert_sth->execute(
+            $project->{id},
+            $pull_request->{number},
+            $pull_request->{title},
+            $pull_request->{state},
+            DateTime::Format::MySQL->format_datetime($created_at),
+            DateTime::Format::MySQL->format_datetime($updated_at),
+        );
+    }
+
+
+    
+    
+
+    return $pull_request->pulls($project->{repo_owner}, $project->{repo_name});
+};
+
+
+
+
 
 
 get qr{^ /NotJenkins/builds $}x => sub {

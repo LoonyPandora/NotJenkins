@@ -124,7 +124,7 @@ sub run_docker_tests {
             map {
                 async_cmd_run({
                     commandlist => $_->{Commands},
-                    dockerfile  => $_->{Dockerfile},
+                    container   => $_->{Container},
                     test_id     => $test_id,
                 })
             } $config->{tests}->{$test_title}
@@ -178,10 +178,19 @@ sub async_cmd_run {
 
             # FIXME TODO: This is trivially exploitable. We need to use the remote API rather than shelling out
             # The Perl bindings are out of date and need to be maintained, so this will do to validate the rest of the app
-            my $runtests = join '\ ', @{$options->{commandlist}} if $options->{commandlist};
-            my $output = qx{docker run -t -w /mnt/repo -v /home/docker/End-User-CP:/mnt/repo:ro EUCP $runtests};
+            my $alltests = join '\ ', @{$options->{commandlist}} if $options->{commandlist};
 
-            $insert_sth->execute($options->{test_id}, $runtests, $output);
+            # Build the image first
+            my $dockerfile = $options->{Container}->{File};
+            my $tag = $options->{Container}->{Tag};
+
+            # TODO: /home/docker/End-User-CP is the path where we extracted the repo after downloading from GitHub
+            my $output = qx{
+                docker build --tag="$tag" $dockerfile;
+                docker run -t -w /mnt/repo -v /home/docker/End-User-CP:/mnt/repo:ro EUCP $alltests
+            };
+
+            $insert_sth->execute($options->{test_id}, $alltests, $output);
         },
         callback => {
             finish => sub {

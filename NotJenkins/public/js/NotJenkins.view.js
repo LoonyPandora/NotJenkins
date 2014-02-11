@@ -100,6 +100,8 @@
                 model.fetch().done(function () {
                     var json = model.toJSON();
 
+                    console.log(json);
+
                     json.title = json.github_title || json.branch_title;
 
                     view.render({

@@ -169,11 +169,12 @@ get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
 get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
     my $command_sth = database->prepare(q{
         SELECT builds.id AS build_id, command, output AS command_output, title AS test_title, builds.status AS build_status, (SELECT output FROM commands WHERE test_id = tests.id ORDER BY id DESC LIMIT 1) AS test_output, display_title, repo_html_url
-        FROM commands
-        LEFT JOIN tests ON commands.test_id = tests.id
-        LEFT JOIN builds ON tests.build_id = builds.id
-        LEFT JOIN projects ON project_id = projects.id
-        WHERE builds.branch_id = (SELECT id FROM branches WHERE branch_name = ? LIMIT 1)
+        FROM branches
+        LEFT JOIN projects ON projects.id = branches.project_id
+        LEFT JOIN builds ON builds.project_id = projects.id
+        LEFT JOIN tests ON tests.build_id = builds.id
+        LEFT JOIN commands ON commands.test_id = tests.id
+        WHERE branch_name = ?
     });
 
     $command_sth->execute(captures->{branch_name});
@@ -216,7 +217,7 @@ get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
     return {
         repo_html_url => $meta->{repo_html_url},
         branch_title  => $meta->{display_title},
-        builds => \@builds,
+        builds        => \@builds,
     };
 };
 

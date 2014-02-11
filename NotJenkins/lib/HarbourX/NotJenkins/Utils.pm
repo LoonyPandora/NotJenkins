@@ -185,9 +185,10 @@ sub async_cmd_run {
             my $tag = $options->{Container}->{Tag};
 
             # TODO: /home/docker/End-User-CP is the path where we extracted the repo after downloading from GitHub
+            # Will not work very well until boot2docer supports shared folders
             my $output = qx{
-                docker build --tag="$tag" $dockerfile;
-                docker run -t -w /mnt/repo -v /home/docker/End-User-CP:/mnt/repo:ro EUCP $alltests
+                docker build --tag="$tag" /home/docker/End-User-CP/$dockerfile;
+                docker run -t -w /mnt/repo -v /home/docker/End-User-CP:/mnt/repo:ro $tag $alltests
             };
 
             $insert_sth->execute($options->{test_id}, $alltests, $output);
@@ -201,8 +202,6 @@ sub async_cmd_run {
             },
         }
     };
-
-    waitall;
 
     return $d->promise;
 }

@@ -1,6 +1,7 @@
+<% if (branches) { %>
 <div class="dropdown">
     <a data-toggle="dropdown" data-target="#">
-        Select a Project <span class="caret"></span> 
+        <%- branches[0].display_title %> <span class="caret"></span> 
     </a>
 
     <ul class="dropdown-menu">
@@ -16,7 +17,6 @@
     </ul>
 </div>
 
-<% if (branches) { %>
 <ul class="list">
     <% _.each(branches, function(model) { %>
     <li>
@@ -29,7 +29,7 @@
 </ul>
 <% } %>
 
-<h4>Open Pull Requests</h4>
+<h4>Built Pull Requests</h4>
 <ul class="list">
     <% _.each(pull_requests, function(model) { %>
     <li>

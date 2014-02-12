@@ -36,7 +36,7 @@
         <a href="/NotJenkins/pull/<%- model.github_number %>" class="<%- sectionActive === model.github_number? 'active' : "" %>">
             <h5><%- model.github_title %></h5>
             <span class="label label-<%- model.status === "pass" ? "success" : "warning" %>"><%- model.status %></span>
-            <span class="label label-<%- model.github_state === "open" ? "success" : "danger" %>"><%- model.github_state %></span>
+            <span class="label label-<%- model.github_state === "open" ? "info" : "default" %>"><%- model.github_state %></span>
             <span class="label label-default">#<%- model.github_number %></span>
         </a>
     </li>

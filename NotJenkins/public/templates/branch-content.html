@@ -1,11 +1,6 @@
-<p>
-    <a href="<%- repo_html_url %>/tree/<%- branch_name %>" class="btn btn-default btn-lg fa fa-github" role="button">
-        View On GitHub
-    </a>
-</p>
+<p><%- repo_description %></p>
 
 <hr>
-
 
 <div class="panel-group" id="accordion">
     <% _.each(builds, function(build, index) { %>

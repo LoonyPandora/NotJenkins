@@ -179,7 +179,7 @@ get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
     my $commands = $command_sth->fetchall_arrayref({});
 
     my $meta_sth = database->prepare(q{
-        SELECT display_title, repo_name, repo_html_url, branch_name, branch_title, updated_at
+        SELECT display_title, repo_name, repo_description, repo_html_url, branch_name, branch_title, updated_at
         FROM branches
         LEFT JOIN projects ON projects.id = branches.project_id
         WHERE branch_name = ?
@@ -219,9 +219,10 @@ get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
                  values %{$output->{builds}};
 
     return {
-        repo_html_url => $meta->{repo_html_url},
-        branch_title  => $meta->{display_title},
-        builds        => \@builds,
+        repo_html_url    => $meta->{repo_html_url},
+        branch_title     => $meta->{display_title},
+        repo_description => $meta->{repo_description },
+        builds           => \@builds,
     };
 };
 

@@ -39,7 +39,7 @@
                 var view = this;
                 options = options || {}
 
-                if (view.options.title) {
+                if (options.title) {
                     return view.render({
                         json: {
                             title: options.title
@@ -61,7 +61,14 @@
                 model.fetch().done(function () {
                     var json = model.toJSON();
 
-                    json.title = json.github_title || json.branch_title;
+                    // We are on a branch
+                    if (json.github_title) {
+                        json.title = json.github_title;
+                        json.github_link = "/"+json.pull+"/"+json.github_number;
+                    } else {
+                        json.title = json.branch_title;
+                        json.github_link = "/tree/"+json.branch_hane;
+                    }
 
                     view.render({
                         json: json
@@ -72,17 +79,17 @@
 
  
         PageTitle: Harbour.View.extend({
-            template: "/modules/NotJenkins/templates/header.html",
+            template: "/core/templates/header.html",
             el: "title.view",
 
             serialize: function (options) {
                 var view = this;
                 options = options || {}
 
-                if (view.options.title) {
+                if (options.title) {
                     return view.render({
                         json: {
-                            title: view.options.title
+                            title: options.title
                         }
                     });
                 }

@@ -53,8 +53,8 @@ get qr{^ /NotJenkins/update_pr_list $}x => sub {
     my $pull_request = $github->pull_request;
 
     my $insert_sth = database->prepare(q{
-        INSERT INTO pull_requests (project_id, github_number, github_title, github_state, github_created_at, github_updated_at)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO pull_requests (project_id, github_number, github_title, github_body, github_state, github_created_at, github_updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     });
 
     # Due to pagination we don't get all of them, just the most recent 50 or so. That's fine for a test route like this
@@ -69,6 +69,7 @@ get qr{^ /NotJenkins/update_pr_list $}x => sub {
             $project->{id},
             $pull_request->{number},
             $pull_request->{title},
+            $pull_request->{body},
             $pull_request->{state},
             DateTime::Format::MySQL->format_datetime($created_at),
             DateTime::Format::MySQL->format_datetime($updated_at),
@@ -131,7 +132,7 @@ get qr{^ /NotJenkins/builds $}x => sub {
 
 get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
     my $pr_sth = database->prepare(q{
-        SELECT pull_requests.id, github_number, github_title, github_state, github_created_at, github_updated_at, display_title, repo_html_url
+        SELECT pull_requests.id, github_number, github_title, github_body, github_state, github_created_at, github_updated_at, display_title, repo_html_url
         FROM pull_requests
         LEFT JOIN projects ON project_id = projects.id
         WHERE github_number = ?

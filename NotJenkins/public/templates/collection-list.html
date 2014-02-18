@@ -1,18 +1,18 @@
 <% if (branches) { %>
 <div class="dropdown">
     <a data-toggle="dropdown" data-target="#">
-        <%- branches[0].display_title %> <span class="caret"></span> 
+        <%- owner %>/<%- repo %> <span class="caret"></span> 
     </a>
 
     <ul class="dropdown-menu">
         <li role="presentation">
-            <a role="menuitem" tabindex="-1" href="#">End-User-CP</a>
+            <a role="menuitem" tabindex="-1" href="#"><%- owner %>/End-User-CP</a>
         </li>
         <li role="presentation">
-            <a role="menuitem" tabindex="-1" href="#">Chimera API</a>
+            <a role="menuitem" tabindex="-1" href="#"><%- owner %>/Chimera API</a>
         </li>
         <li role="presentation">
-            <a role="menuitem" tabindex="-1" href="#">Midphase Checkout</a>
+            <a role="menuitem" tabindex="-1" href="#"><%- owner %>/Midphase Checkout</a>
         </li>
     </ul>
 </div>
@@ -20,7 +20,7 @@
 <ul class="list">
     <% _.each(branches, function(model) { %>
     <li>
-        <a href="/NotJenkins/branch/<%- model.branch_name %>" class="<%- sectionActive === model.branch_name? 'active' : "" %>">
+        <a href="/NotJenkins/repo/<%- owner %>/<%- repo %>/branch/<%- model.branch_name %>" class="<%- sectionActive === model.branch_name? 'active' : "" %>">
             <h5><%- model.branch_title %></h5>
             <span class="label label-<%- model.status === "pass" ? "success" : "warning" %>"><%- model.status %></span>
         </a>
@@ -33,7 +33,7 @@
 <ul class="list">
     <% _.each(pull_requests, function(model) { %>
     <li>
-        <a href="/NotJenkins/pull/<%- model.github_number %>" class="<%- sectionActive === model.github_number? 'active' : "" %>">
+        <a href="/NotJenkins/repo/<%- owner %>/<%- repo %>/pull/<%- model.github_number %>" class="<%- sectionActive === model.github_number? 'active' : "" %>">
             <h5><%- model.github_title %></h5>
             <span class="label label-<%- model.status === "pass" ? "success" : "warning" %>"><%- model.status %></span>
             <span class="label label-<%- model.github_state === "open" ? "info" : "default" %>"><%- model.github_state %></span>

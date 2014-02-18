@@ -8,7 +8,7 @@
 
             serialize: function (options) {
                 var view = this;
-                options = options || {}
+                options = options || {};
 
                 var collection = new NotJenkins.Collection.Builds();
 
@@ -18,9 +18,11 @@
 
                     view.render({
                         json: {
+                            repo: options.repo,
+                            owner: options.owner,
                             sectionActive: options.pullRequestID || options.branchName,
                             branches: builds.branches,
-                            pull_requests: builds.pull_requests
+                            pull_requests: builds.pull_requests,
                         }
                     })
                 });
@@ -40,7 +42,7 @@
                 if (view.options.title) {
                     return view.render({
                         json: {
-                            title: view.options.title
+                            title: options.title
                         }
                     });
                 }
@@ -99,8 +101,6 @@
 
                 model.fetch().done(function () {
                     var json = model.toJSON();
-
-                    console.log(json);
 
                     json.title = json.github_title || json.branch_title;
 

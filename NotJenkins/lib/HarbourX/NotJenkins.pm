@@ -38,6 +38,7 @@ get qr{^ /NotJenkins/update_pr_list $}x => sub {
         FROM projects
         WHERE id = 1
         AND enabled = 1
+        LIMIT 1
     });
 
     $login_sth->execute();
@@ -76,9 +77,6 @@ get qr{^ /NotJenkins/update_pr_list $}x => sub {
         );
     }
 
-
-    
-    
 
     return $pull_request->pulls($project->{repo_owner}, $project->{repo_name});
 };
@@ -125,7 +123,7 @@ get qr{^ /NotJenkins/builds $}x => sub {
 
     return {
         pull_requests => $pull_requests,
-        branches => $branches
+        branches      => $branches
     }
 };
 

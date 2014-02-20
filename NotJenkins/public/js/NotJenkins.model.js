@@ -3,7 +3,11 @@
 
     NotJenkins.Model = {
         Builds: Harbour.Model.extend({
+            urlRoot: "/api/NotJenkins/builds"
+        }),
 
+        Repo: Harbour.Model.extend({
+            urlRoot: "/api/NotJenkins/repo"
         }),
 
         PullRequest: Harbour.Model.extend({

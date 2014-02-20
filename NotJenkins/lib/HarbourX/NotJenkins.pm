@@ -83,6 +83,37 @@ get qr{^ /NotJenkins/update_pr_list $}x => sub {
 
 
 
+get qr{^ /NotJenkins/repo $}x => sub {
+    my $repo_sth = database->prepare(q{
+        SELECT id, repo_name, repo_description, repo_owner, repo_html_url, enabled
+        FROM projects
+        WHERE enabled = 1
+        ORDER BY repo_name ASC
+    });
+
+    $repo_sth->execute();
+
+    return $repo_sth->fetchall_arrayref({});
+};
+
+
+
+get qr{^ /NotJenkins/repo/ (?<repo_owner> .+ ) / (?<repo_name> .+ ) $}x => sub {
+    my $repo_sth = database->prepare(q{
+        SELECT id, repo_name, repo_description, repo_owner, repo_html_url, enabled
+        FROM projects
+        WHERE enabled = 1
+        AND repo_owner = ?
+        AND repo_name =?
+        ORDER BY repo_name ASC
+    });
+
+    $repo_sth->execute(captures->{repo_owner}, captures->{repo_name});
+
+    return $repo_sth->fetchall_hashref([]);
+};
+
+
 
 
 
@@ -128,6 +159,7 @@ get qr{^ /NotJenkins/builds $}x => sub {
 };
 
 
+
 get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
     my $pr_sth = database->prepare(q{
         SELECT pull_requests.id, github_number, github_title, github_body, github_state, github_created_at, github_updated_at, display_title, repo_html_url
@@ -163,6 +195,7 @@ get qr{^ /NotJenkins/pull_requests/ (?<github_number> \d+ ) $}x => sub {
 
     return $pull_request;
 };
+
 
 
 get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
@@ -226,6 +259,7 @@ get qr{^ /NotJenkins/branches/ (?<branch_name> .+ ) $}x => sub {
 };
 
 
+
 post qr{^ /NotJenkins/hooks/push $}x => sub {
     my $params = params();
 
@@ -261,6 +295,7 @@ post qr{^ /NotJenkins/hooks/push $}x => sub {
         "message" => $success
     }
 };
+
 
 
 post qr{^ /NotJenkins/hooks/pull_request $}x => sub {
@@ -308,6 +343,7 @@ post qr{^ /NotJenkins/hooks/pull_request $}x => sub {
         "message" => $success
     }
 };
+
 
 
 

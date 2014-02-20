@@ -10,19 +10,26 @@
                 var view = this;
                 options = options || {};
 
-                var collection = new NotJenkins.Collection.Builds();
+                var deferred = _.map([
+                    new NotJenkins.Model.Repo(),
+                    new NotJenkins.Model.Builds()
+                ], function (collection){
+                    return collection.fetch();
+                });
 
-                collection.fetch().done(function () {
-                    // TODO: Why am I getting an array back?
-                    var builds = collection.toJSON()[0];
+                $.when.apply($, deferred).done(function (repo, build) {
+                    var repo = repo.toJSON();
+                    var build = build.toJSON();
+
+                    console.log(repo, build);
 
                     view.render({
                         json: {
                             repo: options.repo,
                             owner: options.owner,
                             sectionActive: options.pullRequestID || options.branchName,
-                            branches: builds.branches,
-                            pull_requests: builds.pull_requests,
+                            branches: build.branches,
+                            pull_requests: build.pull_requests,
                         }
                     })
                 });

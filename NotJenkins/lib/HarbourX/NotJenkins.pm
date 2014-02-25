@@ -83,6 +83,8 @@ get qr{^ /NotJenkins/update_pr_list $}x => sub {
 
 
 
+# Actual API
+
 get qr{^ /NotJenkins/repo $}x => sub {
     my $repo_sth = database->prepare(q{
         SELECT id, repo_name, repo_description, repo_owner, repo_html_url, enabled
@@ -104,7 +106,7 @@ get qr{^ /NotJenkins/repo/ (?<repo_owner> .+ ) / (?<repo_name> .+ ) $}x => sub {
         FROM projects
         WHERE enabled = 1
         AND repo_owner = ?
-        AND repo_name =?
+        AND repo_name = ?
         ORDER BY repo_name ASC
     });
 
@@ -112,6 +114,31 @@ get qr{^ /NotJenkins/repo/ (?<repo_owner> .+ ) / (?<repo_name> .+ ) $}x => sub {
 
     return $repo_sth->fetchall_hashref([]);
 };
+
+
+get qr{^ /NotJenkins/repo/ (?<repo_owner> .+ ) / (?<repo_name> .+ ) /jobs $}x => sub {
+    my $repo_sth = database->prepare(q{
+        SELECT id, repo_name, repo_description, repo_owner, repo_html_url, enabled
+        FROM projects
+        WHERE enabled = 1
+        AND repo_owner = ?
+        AND repo_name = ?
+        ORDER BY repo_name ASC
+    });
+
+    $repo_sth->execute(captures->{repo_owner}, captures->{repo_name});
+
+    return $repo_sth->fetchall_hashref([]);
+};
+
+
+
+
+
+
+
+
+
 
 
 

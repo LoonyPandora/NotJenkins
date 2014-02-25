@@ -12,7 +12,7 @@
 
         index: function () {
             _.each([
-                new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
+                new NotJenkins.View.CollectionList(),
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
                 new NotJenkins.View.Blank({ el: ".subnav.view" }),
                 new NotJenkins.View.Blank({ el: ".content.view" }),
@@ -25,7 +25,7 @@
 
         settings: function () {
             _.each([
-                new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
+                new NotJenkins.View.CollectionList(),
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
                 new NotJenkins.View.Blank({ el: ".subnav.view" }),
                 new NotJenkins.View.Blank({ el: ".content.view" }),
@@ -38,7 +38,7 @@
 
         job: function () {
             _.each([
-                new NotJenkins.View.CollectionList({ title: "Pull Requests" }),
+                new NotJenkins.View.CollectionList(),
                 new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
                 new NotJenkins.View.Blank({ el: ".subnav.view" }),
                 new NotJenkins.View.Blank({ el: ".content.view" }),

@@ -85,6 +85,7 @@ get qr{^ /NotJenkins/update_pr_list $}x => sub {
 
 # Actual API
 
+# Returns a list of ALL repos
 get qr{^ /NotJenkins/repo $}x => sub {
     my $repo_sth = database->prepare(q{
         SELECT id, repo_name, repo_description, repo_owner, repo_html_url, enabled
@@ -95,11 +96,11 @@ get qr{^ /NotJenkins/repo $}x => sub {
 
     $repo_sth->execute();
 
-    return $repo_sth->fetchall_hashref([]);
+    return $repo_sth->fetchall_arrayref({});
 };
 
 
-
+# Returns data about an individual repo
 get qr{^ /NotJenkins/repo/ (?<repo_owner> .+ ) / (?<repo_name> .+ ) $}x => sub {
     my $repo_sth = database->prepare(q{
         SELECT id, repo_name, repo_description, repo_owner, repo_html_url, enabled

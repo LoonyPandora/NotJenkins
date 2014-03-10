@@ -11,7 +11,7 @@
                 options = options || {};
 
                 var deferred = _.map([
-                    new NotJenkins.Model.Repo(),
+                    new NotJenkins.Model.Repo({id: "UK2group/End-User-CP"}),
                     new NotJenkins.Model.Builds()
                 ], function (collection){
                     return collection.fetch();

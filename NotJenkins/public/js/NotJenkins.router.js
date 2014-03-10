@@ -6,6 +6,7 @@
             "NotJenkins":                                       "index",
             "NotJenkins/settings":                              "settings",
             "NotJenkins/job/:jobID":                            "job",
+            "NotJenkins/repo/:owner/:repo":                     "repo",
             "NotJenkins/repo/:owner/:repo/pull/:pullRequestID": "pull",
             "NotJenkins/repo/:owner/:repo/branch/*branchName":  "branch", // branch names can contain slashes
         },
@@ -46,6 +47,22 @@
                 new NotJenkins.View.PageTitle({ title: "Not Jenkins" }),
             ], function (view, index) {
                 view.serialize();
+            });
+        },
+
+        repo: function (owner, repo) {
+            _.each([
+                new NotJenkins.View.CollectionList(),
+                new NotJenkins.View.Blank({ el: ".collection-list-footer.view" }),
+                new NotJenkins.View.Blank({ el: ".subnav.view" }),
+                new NotJenkins.View.Blank({ el: ".content.view" }),
+                new NotJenkins.View.SectionTitle({ title: "Not Jenkins" }),
+                new NotJenkins.View.PageTitle({ title: "Not Jenkins" }),
+            ], function (view, index) {
+                view.serialize({
+                    owner: owner,
+                    repo: repo
+                });
             });
         },
 

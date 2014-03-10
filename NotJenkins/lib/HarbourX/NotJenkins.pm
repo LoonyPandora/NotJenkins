@@ -95,7 +95,7 @@ get qr{^ /NotJenkins/repo $}x => sub {
 
     $repo_sth->execute();
 
-    return $repo_sth->fetchall_arrayref({});
+    return $repo_sth->fetchall_hashref([]);
 };
 
 

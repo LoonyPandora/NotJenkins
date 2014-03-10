@@ -21,8 +21,6 @@
                     var repo = repo.toJSON();
                     var build = build.toJSON();
 
-                    console.log(repo, build);
-
                     view.render({
                         json: {
                             repo: options.repo,
@@ -44,12 +42,15 @@
 
             serialize: function (options) {
                 var view = this;
-                options = options || {}
+                options = options || {};
 
-                if (options.title) {
+                // FIXME: Cleanup the view.options & options confusion
+                if (view.options.title) {
                     return view.render({
                         json: {
-                            title: options.title
+                            title: view.options.title,
+                            repo_html_url: "",
+                            github_link: ""
                         }
                     });
                 }
@@ -93,10 +94,10 @@
                 var view = this;
                 options = options || {}
 
-                if (options.title) {
+                if (view.options.title) {
                     return view.render({
                         json: {
-                            title: options.title
+                            title: view.options.title
                         }
                     });
                 }
